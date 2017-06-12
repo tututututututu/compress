@@ -5,13 +5,17 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.daimajia.numberprogressbar.NumberProgressBar;
 import com.lzy.okgo.OkGo;
 import com.lzy.okgo.callback.StringCallback;
+import com.lzy.okgo.model.Progress;
+import com.lzy.okgo.model.Response;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import java.io.File;
@@ -24,14 +28,13 @@ import io.reactivex.schedulers.Schedulers;
 import me.nereo.multi_image_selector.MultiImageSelector;
 import me.nereo.multi_image_selector.MultiImageSelectorActivity;
 import me.shaohui.advancedluban.Luban;
-import okhttp3.Call;
-import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
     public static final int REQUEST_IMAGE = 1;
 
     private TextView tvPath;
     private NumberProgressBar npb;
+    private EditText etPath;
 
 
     private ArrayList<String> filePathList = new ArrayList<>();
@@ -45,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
 
         tvPath = (TextView) findViewById(R.id.tv_path);
         npb = (NumberProgressBar) findViewById(R.id.npb);
+        etPath = (EditText) findViewById(R.id.et_path);
         rxPermissions = new RxPermissions(this);
 
 
@@ -123,6 +127,7 @@ public class MainActivity extends AppCompatActivity {
                 }, new Consumer<Throwable>() {
                     @Override
                     public void accept(Throwable throwable) throws Exception {
+                        tvPath.setText(throwable.getMessage());
                         throwable.printStackTrace();
                     }
                 });
@@ -130,27 +135,32 @@ public class MainActivity extends AppCompatActivity {
 
 
     public void uploadImg(List<File> fileList) {
-        OkGo.post(Constant.UPLOAD_URL)
+
+        String path = etPath.getText().toString().trim();
+        if (TextUtils.isEmpty(path)){
+            Toast.makeText(MainActivity.this, "服务器路径不能为空", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        OkGo.<String>post(path)
                 .tag(this)
                 .isMultipart(true)       // 强制使用 multipart/form-data 表单上传（只是演示，不需要的话不要设置。默认就是false）
                 .params("param", "vaule")        // 这里可以上传参数
                 .addFileParams("key", fileList)    // 这里支持一个key传多个文件
                 .execute(new StringCallback() {
-
                     @Override
-                    public void onError(Call call, Response response, Exception e) {
-                        super.onError(call, response, e);
+                    public void onSuccess(Response<String> response) {
+                        Toast.makeText(MainActivity.this, "上传成功", Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
-                    public void onSuccess(String s, okhttp3.Call call, Response response) {
-
+                    public void uploadProgress(Progress progress) {
+                        npb.setProgress((int) (progress.fraction * 100));
                     }
 
                     @Override
-                    public void upProgress(long currentSize, long totalSize, float progress, long networkSpeed) {
-                        //这里回调上传进度(该回调在主线程,可以直接更新ui)
-                        npb.setProgress((int)progress);
+                    public void onError(Response<String> response) {
+                        Toast.makeText(MainActivity.this, response.getException().toString(), Toast.LENGTH_SHORT).show();
                     }
                 });
     }
