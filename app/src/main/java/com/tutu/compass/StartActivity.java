@@ -1,12 +1,10 @@
 package com.tutu.compass;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.TextUtils;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.Toast;
 
 public class StartActivity extends AppCompatActivity implements View.OnClickListener {
     private EditText etUrl;
@@ -30,9 +28,6 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
         Intent intent = null;
         switch (v.getId()) {
             case R.id.btn_web:
-                if (TextUtils.isEmpty(etUrl.getText().toString().trim())) {
-                    Toast.makeText(this, "url为空,展示京东网页", Toast.LENGTH_LONG).show();
-                }
                 intent = new Intent(this, WebViewActivity.class);
                 intent.putExtra("url", etUrl.getText().toString().trim());
                 break;
