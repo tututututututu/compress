@@ -1,6 +1,7 @@
 package com.tutu.compass;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 import android.webkit.JavascriptInterface;
@@ -25,22 +26,35 @@ public class AndroidInterface {
     private Handler deliver = new Handler(Looper.getMainLooper());
 
     @JavascriptInterface
-    public void upLoadImg(final String msg) {
+    public void upLoadImg(final String maxSize, final String maxWidth, final String maxHeight, final String ordersid) {
 
         deliver.post(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(context.getApplicationContext(), "一个参数的方法被调用:" + msg, Toast.LENGTH_LONG).show();
+                try {
+                    Config.maxSize = Integer.parseInt(maxSize);
+                    Config.maxWidth = Integer.parseInt(maxWidth);
+                    Config.maxHeight = Integer.parseInt(maxHeight);
+                    Config.ordersid = ordersid;
+
+                    Intent intent = new Intent(context, MainActivity.class);
+                    context.startActivity(intent);
+                } catch (Exception e) {
+                    Toast.makeText(context, "图片参数设置错误", Toast.LENGTH_SHORT).show();
+                }
+
             }
         });
     }
 
     @JavascriptInterface
-    public void upLoadImg() {
+    public void upLoadImg(final String ordersid) {
         deliver.post(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(context.getApplicationContext(), "无参方法被调用了", Toast.LENGTH_LONG).show();
+                Config.ordersid = ordersid;
+                Intent intent = new Intent(context, MainActivity.class);
+                context.startActivity(intent);
             }
         });
     }

@@ -2,28 +2,40 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/ll_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
+    android:fitsSystemWindows="true"
     android:orientation="vertical"
     tools:context="com.tutu.compass.StartActivity">
+
+
+    <ImageView
+        android:scaleType="fitXY"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/splash1" />
 
     <EditText
         android:id="@+id/et_url"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:hint="输入网页地址Url,不输入则使用本地测试页面" />
+        android:hint="输入网页地址Url,不输入则使用本地测试页面"
+        android:visibility="gone" />
 
     <Button
         android:id="@+id/btn_web"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:text="进入网页" />
+        android:text="进入网页"
+        android:visibility="gone" />
 
     <Button
         android:id="@+id/btn_upload_img"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:text="上传图片" />
+        android:text="上传图片"
+        android:visibility="gone" />
 
 </LinearLayout>

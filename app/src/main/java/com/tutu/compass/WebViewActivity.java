@@ -4,21 +4,17 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.text.TextUtils;
 import android.view.KeyEvent;
-import android.view.View;
 import android.webkit.WebView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import com.just.library.AgentWeb;
 import com.just.library.ChromeClientCallbackManager;
-import com.just.library.LogUtils;
 
 public class WebViewActivity extends AppCompatActivity {
-
     protected AgentWeb mAgentWeb;
     private LinearLayout mLinearLayout;
-    private String url;
 
 
     @Override
@@ -27,18 +23,15 @@ public class WebViewActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_web_view);
 
-        url = getIntent().getStringExtra("url");
-
-
         mLinearLayout = (LinearLayout) this.findViewById(R.id.container);
 
-        mAgentWeb = AgentWeb.with(this)//
+        mAgentWeb = AgentWeb.with(this)
                 .setAgentWebParent(mLinearLayout, new LinearLayout.LayoutParams(-1, -1))//
-                .useDefaultIndicator()//
+                .useDefaultIndicator()
                 .defaultProgressBarColor()
                 .setReceivedTitleCallback(mCallback)
                 .setSecutityType(AgentWeb.SecurityType.strict)
-                .createAgentWeb()//
+                .createAgentWeb()
                 .ready()
                 .go(null);
 
@@ -47,26 +40,21 @@ public class WebViewActivity extends AppCompatActivity {
         mAgentWeb.getJsInterfaceHolder().addJavaObject("android", new AndroidInterface(mAgentWeb, this));
 
 
-        findViewById(R.id.tv).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mAgentWeb.getJsEntraceAccess().quickCallJs("callJs", "你好Js");
-            }
-        });
+//        findViewById(R.id.tv).setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                mAgentWeb.getJsEntraceAccess().quickCallJs("callJs", "你好Js");
+//            }
+//        });
     }
 
     public String getUrl() {
-
-        if (TextUtils.isEmpty(url)) {
-            url = "file:///android_asset/js_interaction/hello.html";
-        }
-        return url;
+        return Config.webUrl;
     }
 
     private ChromeClientCallbackManager.ReceivedTitleCallback mCallback = new ChromeClientCallbackManager.ReceivedTitleCallback() {
         @Override
         public void onReceivedTitle(WebView view, String title) {
-
         }
     };
 
@@ -84,7 +72,6 @@ public class WebViewActivity extends AppCompatActivity {
     protected void onPause() {
         mAgentWeb.getWebLifeCycle().onPause();
         super.onPause();
-
     }
 
     @Override
@@ -96,7 +83,6 @@ public class WebViewActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        LogUtils.i("Info", "result:" + requestCode + " result:" + resultCode);
         mAgentWeb.uploadFileResult(requestCode, resultCode, data);
         super.onActivityResult(requestCode, resultCode, data);
     }
@@ -108,4 +94,20 @@ public class WebViewActivity extends AppCompatActivity {
         //mAgentWeb.destroy();
         mAgentWeb.getWebLifeCycle().onDestroy();
     }
+
+
+    //退出时的时间
+    private long mExitTime;
+
+    @Override
+    public void onBackPressed() {
+
+        if ((System.currentTimeMillis() - mExitTime) > 2000) {
+            Toast.makeText(this,"再按一次退出程序",Toast.LENGTH_SHORT).show();
+            mExitTime = System.currentTimeMillis();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
 }
