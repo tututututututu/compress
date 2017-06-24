@@ -12,8 +12,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.alibaba.fastjson.JSON;
 import com.lzy.okgo.OkGo;
-import com.lzy.okgo.callback.StringCallback;
+import com.lzy.okgo.callback.AbsCallback;
 import com.lzy.okgo.request.BaseRequest;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.yzs.imageshowpickerview.ImageShowPickerBean;
@@ -29,6 +30,7 @@ import me.nereo.multi_image_selector.MultiImageSelector;
 import me.nereo.multi_image_selector.MultiImageSelectorActivity;
 import me.shaohui.advancedluban.Luban;
 import okhttp3.Call;
+import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
     public static final int REQUEST_IMAGE = 1;
@@ -44,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     TextView tvUpload;
     LinearLayout llBack;
     private MaterialDialog materialDialog;
+    TextView tvInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +56,8 @@ public class MainActivity extends AppCompatActivity {
         llBack = (LinearLayout) findViewById(R.id.ll_back);
         tvUpload = (TextView) findViewById(R.id.tv_upload);
         pickerView.setShowAnim(true);
-        pickerView.setMaxNum(30);
+        pickerView.setMaxNum(Config.maxCount);
+        tvInfo = (TextView) findViewById(R.id.tv_info);
 
         pickerView.setPickerListener(new ImageShowPickerListener() {
             @Override
@@ -107,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
                                     .origin(selectFilePath)
                                     .start(MainActivity.this, REQUEST_IMAGE);
                         } else {
-                            Toast.makeText(MainActivity.this.getApplicationContext(), "没有获取到权限", Toast.LENGTH_SHORT).show();
+                            showToast("没有获取到权限");
                         }
                     }
                 });
@@ -156,7 +160,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void cancelProgress() {
-        materialDialog.cancel();
+        tvUpload.post(new Runnable() {
+            @Override
+            public void run() {
+                materialDialog.cancel();
+            }
+        });
+
     }
 
 
@@ -183,47 +193,83 @@ public class MainActivity extends AppCompatActivity {
     public void uploadImg(List<File> fileList) {
 
         if (TextUtils.isEmpty(Config.imgUploadPath)) {
-            Toast.makeText(MainActivity.this, "服务器路径不能为空", Toast.LENGTH_SHORT).show();
+            showToast("服务器路径不能为空");
             return;
         }
 
         for (File file : fileList) {
             if (!file.exists()) {
-                Toast.makeText(this, file.getAbsolutePath() + "  不存在", Toast.LENGTH_SHORT).show();
+                showToast("file.getAbsolutePath() + \"  不存在\"");
                 return;
             }
         }
         updateProgress("上传中...");
         try {
-            OkGo.post(Config.imgUploadPath)
+            OkGo.<BaseRespBean>post(Config.imgUploadPath)
                     .tag(this)//
                     .isMultipart(true)
                     .addFileParams("file[]", fileList)
                     .params("appKey", Config.APPKEY)
                     .params("ordersid", Config.ordersid)
-                    .execute(new StringCallback() {
+                    .execute(new AbsCallback<BaseRespBean>() {
                         @Override
-                        public void onSuccess(String s, Call call, okhttp3.Response response) {
-                            Log.e("tutu", s);
+                        public BaseRespBean convertSuccess(final Response response) throws Exception {
+                            try {
+                                tvUpload.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            tvInfo.setText(tvInfo.getText().toString() + "服务端返回数据" + response.body().string() + "\n");
+                                        }catch (Exception e){
+                                        }
+
+                                    }
+                                });
+                                //tvInfo.setText(tvInfo.getText().toString()+"解析jison"+" "+JSON.parseObject(response.body().string(), BaseRespBean.class)+"\n");
+                                return JSON.parseObject(response.body().string(), BaseRespBean.class);
+                            } catch (Exception e) {
+                                //tvInfo.setText(tvInfo.getText().toString()+" "+"解析jison失败"+e.getMessage()+"\n");
+                                cancelProgress();
+                                showToast(e.getMessage());
+                            }
+                            return null;
+                        }
+
+                        @Override
+                        public void onSuccess(BaseRespBean s, Call call, okhttp3.Response response) {
+                            cancelProgress();
                         }
 
                         @Override
                         public void upProgress(long currentSize, long totalSize, float progress, long networkSpeed) {
                             super.upProgress(currentSize, totalSize, progress, networkSpeed);
                             Log.e("tutu", progress + "");
+                            tvInfo.setText(tvInfo.getText().toString() + " " + "上传进度" + progress + "\n");
                         }
 
                         @Override
-                        public void onAfter(String s, Exception e) {
+                        public void onAfter(BaseRespBean s, Exception e) {
+                            if (s == null) {
+                                tvInfo.setText(tvInfo.getText().toString() + " " + "上传完成 返回json转的对象为空" + "\n");
+                                cancelProgress();
+                                return;
+                            }
+                            tvInfo.setText(tvInfo.getText().toString() + " " + "解析对象成功 返回json转的对象为" + s.toString() + "\n");
                             super.onAfter(s, e);
-                            clearData();
+                            if (s.getCode().equals("1")) {
+                                tvInfo.setText(tvInfo.getText().toString() + " " + "上传成功 code=" + s.getCode() + "\n");
+                                clearData();
+                            } else {
+                                tvInfo.setText(tvInfo.getText().toString() + " " + "上传失败 code=" + s.getCode() + "\n");
+                                showToast(s.getMsg());
+                            }
+
                             cancelProgress();
                         }
 
                         @Override
                         public void onBefore(BaseRequest request) {
                             super.onBefore(request);
-                            Log.e("tutu", request.toString());
                         }
 
                         @Override
@@ -232,20 +278,32 @@ public class MainActivity extends AppCompatActivity {
                         }
 
                         @Override
-                        public void onCacheSuccess(String s, Call call) {
+                        public void onCacheSuccess(BaseRespBean s, Call call) {
                             super.onCacheSuccess(s, call);
                         }
 
                         @Override
                         public void onError(Call call, okhttp3.Response response, Exception e) {
                             super.onError(call, response, e);
+                            showToast(e.getMessage());
                             cancelProgress();
                         }
                     });
 
         } catch (Exception e) {
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            showToast(e.getMessage());
             cancelProgress();
+        }
+    }
+
+    public void showToast(final String msg) {
+        if (!TextUtils.isEmpty(msg)) {
+            tvUpload.post(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(MainActivity.this.getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+                }
+            });
         }
     }
 
@@ -257,6 +315,7 @@ public class MainActivity extends AppCompatActivity {
         selectFilePath.clear();
         selectFiles.clear();
         compressFiles.clear();
+        showToast("上传成功");
         finish();
     }
 }
