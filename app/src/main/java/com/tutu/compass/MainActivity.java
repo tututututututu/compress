@@ -5,23 +5,21 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
-import com.alibaba.fastjson.JSON;
 import com.lzy.okgo.OkGo;
 import com.lzy.okgo.callback.AbsCallback;
-import com.lzy.okgo.request.BaseRequest;
 import com.tbruyelle.rxpermissions2.RxPermissions;
 import com.yzs.imageshowpickerview.ImageShowPickerBean;
 import com.yzs.imageshowpickerview.ImageShowPickerListener;
 import com.yzs.imageshowpickerview.ImageShowPickerView;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,6 +45,8 @@ public class MainActivity extends AppCompatActivity {
     LinearLayout llBack;
     private MaterialDialog materialDialog;
     TextView tvInfo;
+
+    int count = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,6 +94,9 @@ public class MainActivity extends AppCompatActivity {
                 compress();
             }
         });
+
+
+        tvInfo.setText("ordersid=" + Config.ordersid);
     }
 
 
@@ -138,7 +141,14 @@ public class MainActivity extends AppCompatActivity {
                     public void accept(List<File> files) throws Exception {
                         compressFiles.clear();
                         compressFiles = files;
-                        uploadImg(compressFiles);
+
+                        materialDialog.setTitle("上传中...");
+                        updateProgress(1 + "");
+
+                        for (File compressFile : compressFiles) {
+                            uploadImg(compressFile);
+                        }
+
                     }
                 }, new Consumer<Throwable>() {
                     @Override
@@ -151,12 +161,14 @@ public class MainActivity extends AppCompatActivity {
     private void showProgress() {
         materialDialog = new MaterialDialog.Builder(this)
                 .title("处理中...")
+                .cancelable(false)
                 .progress(true, 0)
                 .show();
+
     }
 
     private void updateProgress(String content) {
-        materialDialog.setTitle(content);
+        materialDialog.setContent("第" + content + "/" + compressFiles.size() + "张");
     }
 
     private void cancelProgress() {
@@ -190,110 +202,76 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void uploadImg(List<File> fileList) {
+    public void uploadImg(File file) {
 
         if (TextUtils.isEmpty(Config.imgUploadPath)) {
             showToast("服务器路径不能为空");
+            cancelProgress();
+            count = 0;
             return;
         }
 
-        for (File file : fileList) {
-            if (!file.exists()) {
-                showToast("file.getAbsolutePath() + \"  不存在\"");
-                return;
-            }
+
+        if (!file.exists()) {
+            showToast("file.getAbsolutePath() + \"  不存在\"");
+            cancelProgress();
+            count = 0;
+            return;
         }
-        updateProgress("上传中...");
+
+
         try {
-            OkGo.<BaseRespBean>post(Config.imgUploadPath)
+            OkGo.<BaseRespBean>post(Config.imgUploadPath + "?ordersid=" + Config.ordersid)
                     .tag(this)//
                     .isMultipart(true)
-                    .addFileParams("file[]", fileList)
+                    .params("file", file)
                     .params("appKey", Config.APPKEY)
-                    .params("ordersid", Config.ordersid)
+                    //.params("ordersid", Config.ordersid)
                     .execute(new AbsCallback<BaseRespBean>() {
+
                         @Override
                         public BaseRespBean convertSuccess(final Response response) throws Exception {
-                            try {
-                                tvUpload.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        try {
-                                            tvInfo.setText(tvInfo.getText().toString() + "服务端返回数据" + response.body().string() + "\n");
-                                        }catch (Exception e){
-                                        }
-
+                            tvInfo.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        tvInfo.setText(tvInfo.getText().toString() + response.body().string() + "\n");
+                                    } catch (IOException e) {
+                                        tvInfo.setText(tvInfo.getText().toString() + e.getMessage() + "\n");
                                     }
-                                });
-                                //tvInfo.setText(tvInfo.getText().toString()+"解析jison"+" "+JSON.parseObject(response.body().string(), BaseRespBean.class)+"\n");
-                                return JSON.parseObject(response.body().string(), BaseRespBean.class);
-                            } catch (Exception e) {
-                                //tvInfo.setText(tvInfo.getText().toString()+" "+"解析jison失败"+e.getMessage()+"\n");
-                                cancelProgress();
-                                showToast(e.getMessage());
-                            }
+                                }
+                            });
                             return null;
                         }
 
                         @Override
-                        public void onSuccess(BaseRespBean s, Call call, okhttp3.Response response) {
-                            cancelProgress();
-                        }
-
-                        @Override
-                        public void upProgress(long currentSize, long totalSize, float progress, long networkSpeed) {
-                            super.upProgress(currentSize, totalSize, progress, networkSpeed);
-                            Log.e("tutu", progress + "");
-                            tvInfo.setText(tvInfo.getText().toString() + " " + "上传进度" + progress + "\n");
-                        }
-
-                        @Override
-                        public void onAfter(BaseRespBean s, Exception e) {
-                            if (s == null) {
-                                tvInfo.setText(tvInfo.getText().toString() + " " + "上传完成 返回json转的对象为空" + "\n");
+                        public void onSuccess(BaseRespBean baseRespBean, Call call, Response response) {
+                            tvInfo.setText(tvInfo.getText().toString() + "第" + count + "张上传成功" + "\n");
+                            if (count == compressFiles.size()) {
+                                tvInfo.setText(tvInfo.getText().toString() + "所有文件上传完成" + "\n");
+                                /**
+                                 * 上传完毕
+                                 */
                                 cancelProgress();
-                                return;
-                            }
-                            tvInfo.setText(tvInfo.getText().toString() + " " + "解析对象成功 返回json转的对象为" + s.toString() + "\n");
-                            super.onAfter(s, e);
-                            if (s.getCode().equals("1")) {
-                                tvInfo.setText(tvInfo.getText().toString() + " " + "上传成功 code=" + s.getCode() + "\n");
                                 clearData();
                             } else {
-                                tvInfo.setText(tvInfo.getText().toString() + " " + "上传失败 code=" + s.getCode() + "\n");
-                                showToast(s.getMsg());
+                                count++;
+                                updateProgress(count + "");
                             }
-
-                            cancelProgress();
                         }
 
                         @Override
-                        public void onBefore(BaseRequest request) {
-                            super.onBefore(request);
-                        }
-
-                        @Override
-                        public void onCacheError(Call call, Exception e) {
-                            super.onCacheError(call, e);
-                        }
-
-                        @Override
-                        public void onCacheSuccess(BaseRespBean s, Call call) {
-                            super.onCacheSuccess(s, call);
-                        }
-
-                        @Override
-                        public void onError(Call call, okhttp3.Response response, Exception e) {
+                        public void onError(Call call, Response response, Exception e) {
                             super.onError(call, response, e);
                             showToast(e.getMessage());
                             cancelProgress();
                         }
                     });
-
         } catch (Exception e) {
             showToast(e.getMessage());
             cancelProgress();
         }
+
     }
 
     public void showToast(final String msg) {
@@ -312,10 +290,11 @@ public class MainActivity extends AppCompatActivity {
      * 文件上传完毕  清除数据
      */
     private void clearData() {
+        count = 0;
         selectFilePath.clear();
         selectFiles.clear();
-        compressFiles.clear();
+//        compressFiles.clear();
         showToast("上传成功");
-        finish();
+        // finish();
     }
 }

@@ -1,2 +1,2 @@
-include ':app', ':imgselector'
+include ':app', ':imgselector', ':imageshowpickerview'
 project(':imgselector').projectDir = new File('multi-image-selector')

@@ -1,12 +1,17 @@
 package com.tutu.compass;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.webkit.WebView;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.just.library.AgentWeb;
@@ -25,10 +30,20 @@ public class WebViewActivity extends AppCompatActivity {
 
         mLinearLayout = (LinearLayout) this.findViewById(R.id.container);
 
+
+        CommonIndicator mCommonIndicator=new CommonIndicator(this);
+        FrameLayout.LayoutParams lp=new FrameLayout.LayoutParams(-2,-2);
+        lp.gravity= Gravity.CENTER;
+        ProgressBar mProgressBar=new ProgressBar(this);
+
+        mProgressBar.getIndeterminateDrawable().setColorFilter(Color.parseColor("#F36142"), PorterDuff.Mode.MULTIPLY);
+        mCommonIndicator.addView(mProgressBar,lp);
+
+
         mAgentWeb = AgentWeb.with(this)
                 .setAgentWebParent(mLinearLayout, new LinearLayout.LayoutParams(-1, -1))//
-                .useDefaultIndicator()
-                .defaultProgressBarColor()
+                .customProgress(mCommonIndicator)
+//                .defaultProgressBarColor()
                 .setReceivedTitleCallback(mCallback)
                 .setSecutityType(AgentWeb.SecurityType.strict)
                 .createAgentWeb()
@@ -38,7 +53,6 @@ public class WebViewActivity extends AppCompatActivity {
         mAgentWeb.getLoader().loadUrl(getUrl());
 
         mAgentWeb.getJsInterfaceHolder().addJavaObject("android", new AndroidInterface(mAgentWeb, this));
-
 
 //        findViewById(R.id.tv).setOnClickListener(new View.OnClickListener() {
 //            @Override
@@ -92,6 +106,7 @@ public class WebViewActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         //mAgentWeb.destroy();
+        mAgentWeb.clearWebCache();
         mAgentWeb.getWebLifeCycle().onDestroy();
     }
 

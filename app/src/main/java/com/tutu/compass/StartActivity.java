@@ -22,23 +22,23 @@ public class StartActivity extends AppCompatActivity implements View.OnClickList
         web.setOnClickListener(this);
         upload.setOnClickListener(this);
 
-        if (!SPUtils.getBoolean("noFirst")) {
+//        if (!SPUtils.getBoolean("noFirst")) {
             Intent intent = new Intent(StartActivity.this, FirstActivity.class);
             startActivity(intent);
             finish();
             SPUtils.putBoolean("noFirst", true);
-        } else {
-            findViewById(R.id.ll_root).postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    Intent intent = new Intent(StartActivity.this, WebViewActivity.class);
-//                    Intent intent = new Intent(StartActivity.this, MainActivity.class);
-                    startActivity(intent);
-                    finish();
-                    SPUtils.putBoolean("noFirst", true);
-                }
-            }, 2000);
-        }
+//        } else {
+//            findViewById(R.id.ll_root).postDelayed(new Runnable() {
+//                @Override
+//                public void run() {
+//                    Intent intent = new Intent(StartActivity.this, WebViewActivity.class);
+////                    Intent intent = new Intent(StartActivity.this, MainActivity.class);
+//                    startActivity(intent);
+//                    finish();
+//                    SPUtils.putBoolean("noFirst", true);
+//                }
+//            }, 2000);
+//        }
     }
 
     @Override

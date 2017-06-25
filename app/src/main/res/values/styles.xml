@@ -17,8 +17,8 @@
     </style>
 
 
-    <style name="splash_theme" parent="@style/Theme.AppCompat.NoActionBar">
-        <item name="android:background">@drawable/splash1</item>
+    <style name="splash_theme" parent="@style/Theme.AppCompat.Light.NoActionBar">
+        <!--<item name="android:background">@drawable/splash1</item>-->
         <item name="android:windowAnimationStyle">@style/core_AppAnimalStyle</item>
         <item name="android:windowFullscreen">true</item>
     </style>
