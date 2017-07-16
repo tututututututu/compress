@@ -221,11 +221,13 @@ public class MainActivity extends AppCompatActivity {
 
 
         try {
-            OkGo.<BaseRespBean>post(Config.imgUploadPath + "?ordersid=" + Config.ordersid)
+            OkGo.<BaseRespBean>post(Config.imgUploadPath + "?ordersid=" + Config.ordersid + "&" + "roomtypeid=" + Config.roomtypeid + "&ext=" + Config.ext)
                     .tag(this)//
                     .isMultipart(true)
                     .params("file", file)
                     .params("appKey", Config.APPKEY)
+//                    .params("roomtypeid", Config.roomtypeid)
+//                    .params("ext", Config.ext)
                     //.params("ordersid", Config.ordersid)
                     .execute(new AbsCallback<BaseRespBean>() {
 

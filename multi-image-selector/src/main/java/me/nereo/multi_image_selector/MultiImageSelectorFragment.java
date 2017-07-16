@@ -1,6 +1,5 @@
 package me.nereo.multi_image_selector;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -19,7 +18,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.FileProvider;
 import android.support.v4.content.Loader;
@@ -304,12 +302,12 @@ public class MultiImageSelectorFragment extends Fragment {
      * Open camera
      */
     private void showCameraAction() {
-        if(ContextCompat.checkSelfPermission(getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED){
-            requestPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    getString(R.string.mis_permission_rationale_write_storage),
-                    REQUEST_STORAGE_WRITE_ACCESS_PERMISSION);
-        }else {
+//        if(ContextCompat.checkSelfPermission(getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
+//                != PackageManager.PERMISSION_GRANTED){
+//            requestPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE,
+//                    getString(R.string.mis_permission_rationale_write_storage),
+//                    REQUEST_STORAGE_WRITE_ACCESS_PERMISSION);
+//        }else {
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
                 try {
@@ -331,7 +329,7 @@ public class MultiImageSelectorFragment extends Fragment {
             } else {
                 Toast.makeText(getActivity(), R.string.mis_msg_no_camera, Toast.LENGTH_SHORT).show();
             }
-        }
+//        }
     }
 
     private void requestPermission(final String permission, String rationale, final int requestCode){

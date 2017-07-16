@@ -1,18 +1,29 @@
 package com.tutu.compass;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
+
+import com.alibaba.fastjson.JSON;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import ezy.boost.update.IUpdateParser;
+import ezy.boost.update.UpdateInfo;
+import ezy.boost.update.UpdateManager;
 import me.relex.circleindicator.CircleIndicator;
 
 public class FirstActivity extends AppCompatActivity implements ViewPager.OnPageChangeListener {
@@ -28,6 +39,8 @@ public class FirstActivity extends AppCompatActivity implements ViewPager.OnPage
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        updateRequest();
+
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_first);
         indicator = (CircleIndicator) findViewById(R.id.indicator);
@@ -38,12 +51,13 @@ public class FirstActivity extends AppCompatActivity implements ViewPager.OnPage
             @Override
             public void onClick(View v) {
 
-                if (!NetworkUtils.isConnected(FirstActivity.this.getApplicationContext())){
-                    startActivity(new Intent(FirstActivity.this, NetErrorActivity.class));
-                    finish();
-                    return;
-                }
+//                if (!NetworkUtils.isConnected(FirstActivity.this.getApplicationContext())) {
+//                    startActivity(new Intent(FirstActivity.this, NetErrorActivity.class));
+//                    finish();
+//                    return;
+//                }
 
+//                startActivity(new Intent(FirstActivity.this, MainActivity.class));
                 startActivity(new Intent(FirstActivity.this, WebViewActivity.class));
                 finish();
             }
@@ -112,5 +126,58 @@ public class FirstActivity extends AppCompatActivity implements ViewPager.OnPage
     @Override
     public void onPageScrollStateChanged(int state) {
 
+    }
+
+    //版本号
+    public static int getVersionCode(Context context) {
+        return getPackageInfo(context).versionCode;
+    }
+
+    private static PackageInfo getPackageInfo(Context context) {
+        PackageInfo pi = null;
+
+        try {
+            PackageManager pm = context.getPackageManager();
+            pi = pm.getPackageInfo(context.getPackageName(),
+                    PackageManager.GET_CONFIGURATIONS);
+
+            return pi;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return pi;
+    }
+
+    private void updateRequest() {
+
+
+        UpdateManager.create(FirstActivity.this)
+                .setUrl(Config.updateUrl)
+                .setPostData("versionCode=" + getVersionCode(FirstActivity.this) + "&appKey=" + Config.APPKEY)
+                .setParser(new IUpdateParser() {
+                    @Override
+                    public UpdateInfo parse(String source) throws Exception {
+
+                        Log.e("update", source);
+                        UpdateBean updateBean = JSON.parseObject(source, UpdateBean.class);
+                        return updateBean.getUpdateInfo();
+                    }
+                })
+                .setWifiOnly(false)
+                .check();
+
+
+    }
+
+    public void showToast(final String msg) {
+        if (!TextUtils.isEmpty(msg)) {
+            vp.post(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(FirstActivity.this.getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
 }

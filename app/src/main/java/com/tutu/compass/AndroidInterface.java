@@ -5,10 +5,9 @@ import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
+import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.widget.Toast;
-
-import com.just.library.AgentWeb;
 
 /**
  * Created by tutu on 2017/6/15.
@@ -16,11 +15,10 @@ import com.just.library.AgentWeb;
 
 public class AndroidInterface {
 
-    private AgentWeb agent;
     private Context context;
 
-    public AndroidInterface(AgentWeb agent, Context context) {
-        this.agent = agent;
+    public AndroidInterface(Context context) {
+
         this.context = context;
     }
 
@@ -59,10 +57,38 @@ public class AndroidInterface {
     }
 
     @JavascriptInterface
+    public void upLoadImg(final String ordersid, final String roomtypeid, final String ext, final String size) {
+        deliver.post(new Runnable() {
+            @Override
+            public void run() {
+                Log.e("js", "三个参数的");
+                if (TextUtils.isEmpty(ordersid)) {
+                    Toast.makeText(context.getApplicationContext(), "ordersid为空", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                try {
+                    Config.ordersid = ordersid;
+                    Config.roomtypeid = roomtypeid;
+                    Config.ext = ext;
+                    Config.maxSize = Integer.parseInt(size);
+                    Intent intent = new Intent(context, MainActivity.class);
+                    context.startActivity(intent);
+                } catch (Exception e) {
+                    Toast.makeText(context.getApplicationContext(), "js数据错误", Toast.LENGTH_SHORT).show();
+                }
+
+            }
+        });
+    }
+
+
+    @JavascriptInterface
     public void upLoadImg(final String ordersid) {
         deliver.post(new Runnable() {
             @Override
             public void run() {
+                Log.e("js", "一个参数的");
                 if (TextUtils.isEmpty(ordersid)) {
                     Toast.makeText(context.getApplicationContext(), "ordersid为空", Toast.LENGTH_SHORT).show();
                     return;
@@ -73,5 +99,4 @@ public class AndroidInterface {
             }
         });
     }
-
 }
