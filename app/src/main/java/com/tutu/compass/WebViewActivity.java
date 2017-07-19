@@ -1,6 +1,7 @@
 package com.tutu.compass;
 
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -14,6 +15,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
+import android.webkit.GeolocationPermissions;
 import android.webkit.JsResult;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceError;
@@ -52,7 +54,14 @@ public class WebViewActivity extends AppCompatActivity {
         mWebView.addJavascriptInterface(new AndroidInterface(this), "android");
 
 
+
         mWebView.setWebChromeClient(new WebChromeClient() {
+            //配置权限（同样在WebChromeClient中实现）
+            public void onGeolocationPermissionsShowPrompt(String origin,
+                                                           GeolocationPermissions.Callback callback) {
+                callback.invoke(origin, true, false);
+                super.onGeolocationPermissionsShowPrompt(origin, callback);
+            }
 
             @Override
             public void onProgressChanged(WebView view, int newProgress) {
@@ -153,7 +162,7 @@ public class WebViewActivity extends AppCompatActivity {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     return;
                 }
-                if (errorCode == -6||errorCode==-2) {
+                if (errorCode == -6 || errorCode == -2) {
                     Log.e("webview", "6.0- " + errorCode + " " + failingUrl);
                     view.stopLoading();
                     mErrorView.setVisibility(View.VISIBLE);
@@ -178,7 +187,7 @@ public class WebViewActivity extends AppCompatActivity {
 
                 Log.e("webview", "6.0+ " + error.toString() + " " + error.getErrorCode() + " " + request.getUrl().toString());
                 // 在这里显示自定义错误页
-                if (error.getErrorCode() == -6||error.getErrorCode()==-2) {
+                if (error.getErrorCode() == -6 || error.getErrorCode() == -2) {
                     Log.e("webview", "6.0+ " + error.toString() + " " + error.getErrorCode() + " " + request.getUrl().toString());
                     view.stopLoading();
                     mErrorView.setVisibility(View.VISIBLE);
@@ -220,6 +229,13 @@ public class WebViewActivity extends AppCompatActivity {
         webSettings.setJavaScriptCanOpenWindowsAutomatically(true); //支持通过JS打开新窗口
         webSettings.setLoadsImagesAutomatically(true); //支持自动加载图片
         webSettings.setDefaultTextEncodingName("utf-8");//设置编码格式
+
+        webSettings.setDatabaseEnabled(true);
+        String dir = this.getApplicationContext().getDir("database", Context.MODE_PRIVATE).getPath();
+        webSettings.setGeolocationDatabasePath(dir);
+        webSettings.setDomStorageEnabled(true);
+        // 开启 Application Caches 功能
+        webSettings.setAppCacheEnabled(true);
 
         mWebView.loadUrl(getUrl());
 

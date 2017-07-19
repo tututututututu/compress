@@ -1,5 +1,6 @@
 package com.tutu.compass;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -17,6 +18,7 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.alibaba.fastjson.JSON;
+import com.tbruyelle.rxpermissions2.RxPermissions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +26,7 @@ import java.util.List;
 import ezy.boost.update.IUpdateParser;
 import ezy.boost.update.UpdateInfo;
 import ezy.boost.update.UpdateManager;
+import io.reactivex.functions.Consumer;
 import me.relex.circleindicator.CircleIndicator;
 
 public class FirstActivity extends AppCompatActivity implements ViewPager.OnPageChangeListener {
@@ -35,6 +38,7 @@ public class FirstActivity extends AppCompatActivity implements ViewPager.OnPage
     //最后一页的按钮
     private Button ib_start;
     private CircleIndicator indicator;
+    private RxPermissions rxPermissions;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +48,7 @@ public class FirstActivity extends AppCompatActivity implements ViewPager.OnPage
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_first);
         indicator = (CircleIndicator) findViewById(R.id.indicator);
-
+        rxPermissions = new RxPermissions(this);
 
         ib_start = (Button) findViewById(R.id.guide_ib_start);
         ib_start.setOnClickListener(new View.OnClickListener() {
@@ -58,8 +62,20 @@ public class FirstActivity extends AppCompatActivity implements ViewPager.OnPage
 //                }
 
 //                startActivity(new Intent(FirstActivity.this, MainActivity.class));
-                startActivity(new Intent(FirstActivity.this, WebViewActivity.class));
-                finish();
+
+                rxPermissions.request(Manifest.permission.ACCESS_FINE_LOCATION
+                ,Manifest.permission.ACCESS_COARSE_LOCATION)
+                        .subscribe(new Consumer<Boolean>() {
+                            @Override
+                            public void accept(Boolean aBoolean) throws Exception {
+                                if (aBoolean){
+                                    startActivity(new Intent(FirstActivity.this, WebViewActivity.class));
+                                    finish();
+                                }else {
+                                    Toast.makeText(FirstActivity.this.getApplicationContext(), "没有获取到定位权限", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
             }
         });
 
