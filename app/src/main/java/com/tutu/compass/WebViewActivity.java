@@ -28,6 +28,8 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.tutu.compass.utils.NetworkUtils;
+
 import static android.view.KeyEvent.KEYCODE_BACK;
 import static com.tutu.compass.R.id.webView;
 

@@ -1,4 +1,4 @@
-package com.tutu.compass;
+package com.tutu.compass.utils;
 
 import android.annotation.TargetApi;
 import android.content.Context;

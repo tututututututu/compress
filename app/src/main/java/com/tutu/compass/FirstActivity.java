@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
@@ -17,15 +16,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import com.alibaba.fastjson.JSON;
 import com.tbruyelle.rxpermissions2.RxPermissions;
+import com.tutu.compass.update.AppUpdateService;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import ezy.boost.update.IUpdateParser;
-import ezy.boost.update.UpdateInfo;
-import ezy.boost.update.UpdateManager;
 import io.reactivex.functions.Consumer;
 import me.relex.circleindicator.CircleIndicator;
 
@@ -167,21 +163,21 @@ public class FirstActivity extends AppCompatActivity implements ViewPager.OnPage
 
     private void updateRequest() {
 
-
-        UpdateManager.create(FirstActivity.this)
-                .setUrl(Config.updateUrl)
-                .setPostData("versionCode=" + getVersionCode(FirstActivity.this) + "&appKey=" + Config.APPKEY)
-                .setParser(new IUpdateParser() {
-                    @Override
-                    public UpdateInfo parse(String source) throws Exception {
-
-                        Log.e("update", source);
-                        UpdateBean updateBean = JSON.parseObject(source, UpdateBean.class);
-                        return updateBean.getUpdateInfo();
-                    }
-                })
-                .setWifiOnly(false)
-                .check();
+        AppUpdateService.updateService(this);
+//        UpdateManager.create(FirstActivity.this)
+//                .setUrl(Config.updateUrl)
+//                .setPostData("versionCode=" + getVersionCode(FirstActivity.this) + "&appKey=" + Config.APPKEY)
+//                .setParser(new IUpdateParser() {
+//                    @Override
+//                    public UpdateInfo parse(String source) throws Exception {
+//
+//                        Log.e("update", source);
+//                        UpdateBean updateBean = JSON.parseObject(source, UpdateBean.class);
+//                        return updateBean.getUpdateInfo();
+//                    }
+//                })
+//                .setWifiOnly(false)
+//                .check();
 
 
     }

@@ -1,5 +1,5 @@
 package com.tutu.compass;
-import ezy.boost.update.UpdateInfo;
+
 
 /**
  * Created by tutu on 2017/7/16.
@@ -39,5 +39,14 @@ public class UpdateBean {
 
     public void setUpdateInfo(UpdateInfo UpdateInfo) {
         this.UpdateInfo = UpdateInfo;
+    }
+
+    @Override
+    public String toString() {
+        return "UpdateBean{" +
+                "Code='" + Code + '\'' +
+                ", Ext='" + Ext + '\'' +
+                ", UpdateInfo=" + UpdateInfo +
+                '}';
     }
 }

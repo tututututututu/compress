@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import com.just.library.BaseIndicatorView;
+import com.tutu.compass.utils.NetworkUtils;
 
 /**
  * Created by tutu on 2017/6/25.
