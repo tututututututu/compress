@@ -17,6 +17,7 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.tbruyelle.rxpermissions2.RxPermissions;
+import com.tencent.bugly.crashreport.CrashReport;
 import com.tutu.compass.update.AppUpdateService;
 
 import java.util.ArrayList;
@@ -40,7 +41,6 @@ public class FirstActivity extends AppCompatActivity implements ViewPager.OnPage
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         updateRequest();
-
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_first);
         indicator = (CircleIndicator) findViewById(R.id.indicator);

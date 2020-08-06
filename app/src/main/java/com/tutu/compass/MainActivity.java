@@ -14,6 +14,7 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.lzy.okgo.OkGo;
 import com.lzy.okgo.callback.AbsCallback;
 import com.tbruyelle.rxpermissions2.RxPermissions;
+import com.tencent.bugly.crashreport.CrashReport;
 import com.yzs.imageshowpickerview.ImageShowPickerBean;
 import com.yzs.imageshowpickerview.ImageShowPickerListener;
 import com.yzs.imageshowpickerview.ImageShowPickerView;
@@ -94,7 +95,6 @@ public class MainActivity extends AppCompatActivity {
                 compress();
             }
         });
-
 
         tvInfo.setText("ordersid=" + Config.ordersid);
     }

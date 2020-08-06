@@ -6,6 +6,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.EditText;
 
+import com.tencent.bugly.crashreport.CrashReport;
+
 public class StartActivity extends AppCompatActivity implements View.OnClickListener {
     private EditText etUrl;
     private View web;

@@ -60,8 +60,8 @@ public class AppUpdateService {
                     public void onSuccess(UpdateBean baseRespBean, Call call, Response response) {
                         //测试代码
                         Log.e("update",baseRespBean.toString());
-                        baseRespBean.getUpdateInfo().setHasUpdate(true);
-                        baseRespBean.getUpdateInfo().setUrl("http://400.6805685.com/mycrm/andrpack/StaffAssistantDebug.apk");
+//                        baseRespBean.getUpdateInfo().setHasUpdate(true);
+//                        baseRespBean.getUpdateInfo().setUrl("http://400.6805685.com/mycrm/andrpack/StaffAssistantDebug.apk");
                         Log.e("update",baseRespBean.toString());
 
                         VersionInfoBean lUpdateInfoBean = new VersionInfoBean();
