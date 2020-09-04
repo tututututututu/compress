@@ -1,8 +1,15 @@
 package com.tutu.compass;
 
 import android.Manifest;
+import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.View;
@@ -18,6 +25,10 @@ import com.tencent.bugly.crashreport.CrashReport;
 import com.yzs.imageshowpickerview.ImageShowPickerBean;
 import com.yzs.imageshowpickerview.ImageShowPickerListener;
 import com.yzs.imageshowpickerview.ImageShowPickerView;
+import com.zhihu.matisse.Matisse;
+import com.zhihu.matisse.MimeType;
+import com.zhihu.matisse.internal.entity.CaptureStrategy;
+import com.zhihu.matisse.internal.utils.PathUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -109,10 +120,25 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void accept(Boolean aBoolean) throws Exception {
                         if (aBoolean) {
-                            MultiImageSelector.create()
-                                    .count(30)
-                                    .origin(selectFilePath)
-                                    .start(MainActivity.this, REQUEST_IMAGE);
+
+
+                            Matisse.from(MainActivity.this)
+                                    .choose(MimeType.ofImage())
+                                    .countable(true)
+                                    .maxSelectable(30)
+                                    .capture(true)
+                                    .captureStrategy(new CaptureStrategy(true, "com.tutu.compass.fileProvider"))
+                                    .showSingleMediaType(true)
+                                    .theme(R.style.Matisse_Dracula)
+                                    .restrictOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
+                                    .thumbnailScale(0.85f)
+                                    .imageEngine(new MyGlideEngine())
+                                    .forResult(REQUEST_IMAGE);
+
+//                            MultiImageSelector.create()
+//                                    .count(30)
+//                                    .origin(selectFilePath)
+//                                    .start(MainActivity.this, REQUEST_IMAGE);
                         } else {
                             showToast("没有获取到权限");
                         }
@@ -181,24 +207,87 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * 根据Uri获取文件真实地址
+     */
+    public static String getRealFilePath(Context context, Uri uri) {
+        if (null == uri) return null;
+        final String scheme = uri.getScheme();
+        String realPath = null;
+        if (scheme == null)
+            realPath = uri.getPath();
+        else if (ContentResolver.SCHEME_FILE.equals(scheme)) {
+            realPath = uri.getPath();
+        } else if (ContentResolver.SCHEME_CONTENT.equals(scheme)) {
+            Cursor cursor = context.getContentResolver().query(uri,
+                    new String[]{MediaStore.Images.ImageColumns.DATA},
+                    null, null, null);
+            if (null != cursor) {
+                if (cursor.moveToFirst()) {
+                    int index = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
+                    if (index > -1) {
+                        realPath = cursor.getString(index);
+                    }
+                }
+                cursor.close();
+            }
+        }
+        if (TextUtils.isEmpty(realPath)) {
+            if (uri != null) {
+                String uriString = uri.toString();
+                int index = uriString.lastIndexOf("/");
+                String imageName = uriString.substring(index);
+                File storageDir;
+
+                storageDir = Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_PICTURES);
+                File file = new File(storageDir, imageName);
+                if (file.exists()) {
+                    realPath = file.getAbsolutePath();
+                } else {
+                    storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+                    File file1 = new File(storageDir, imageName);
+                    realPath = file1.getAbsolutePath();
+                }
+            }
+        }
+        return realPath;
+    }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-
-        if (requestCode == REQUEST_IMAGE && data != null) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_IMAGE && resultCode == RESULT_OK) {
             selectFiles.clear();
             listImg.clear();
-            selectFilePath = data.getStringArrayListExtra(MultiImageSelectorActivity.EXTRA_RESULT);
-            for (String str : selectFilePath) {
-                selectFiles.add(new File(str));
-                listImg.add(new ImageBean(str));
+
+            List<Uri> mSelected = Matisse.obtainResult(data);
+            if (mSelected != null) {
+                for (int i = 0; i < mSelected.size(); i++) {
+                    String filePath;
+                    try {
+                        filePath = PathUtils.getPath(this, mSelected.get(i));
+                    } catch (Exception e) {
+                        filePath = getRealFilePath(this, mSelected.get(i));
+                    }
+
+                    selectFilePath.add(filePath);
+                    selectFiles.add(new File(filePath));
+                    listImg.add(new ImageBean(filePath));
+                }
             }
+
+
+//            selectFilePath = data.getStringArrayListExtra(MultiImageSelectorActivity.EXTRA_RESULT);
+//            for (String str : selectFilePath) {
+//                selectFiles.add(new File(str));
+//                listImg.add(new ImageBean(str));
+//            }
 
             pickerView.setNewData(listImg);
             pickerView.show();
         }
-
-        super.onActivityResult(requestCode, resultCode, data);
     }
 
 
@@ -256,6 +345,7 @@ public class MainActivity extends AppCompatActivity {
                                  */
                                 cancelProgress();
                                 clearData();
+                                finish();
                             } else {
                                 count++;
                                 updateProgress(count + "");

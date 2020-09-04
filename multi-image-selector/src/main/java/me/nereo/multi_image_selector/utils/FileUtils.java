@@ -1,8 +1,13 @@
 package me.nereo.multi_image_selector.utils;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.text.TextUtils;
 
 import java.io.File;
@@ -19,9 +24,9 @@ public class FileUtils {
     private static final String JPEG_FILE_PREFIX = "IMG_";
     private static final String JPEG_FILE_SUFFIX = ".jpg";
 
-    public static File createTmpFile(Context context) throws IOException{
+    public static File createTmpFile(Context context) throws IOException {
         File dir = null;
-        if(TextUtils.equals(Environment.getExternalStorageState(), Environment.MEDIA_MOUNTED)) {
+        if (TextUtils.equals(Environment.getExternalStorageState(), Environment.MEDIA_MOUNTED)) {
             dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
             if (!dir.exists()) {
                 dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM + "/Camera");
@@ -29,7 +34,7 @@ public class FileUtils {
                     dir = getCacheDirectory(context, true);
                 }
             }
-        }else{
+        } else {
             dir = getCacheDirectory(context, true);
         }
         return File.createTempFile(JPEG_FILE_PREFIX, JPEG_FILE_SUFFIX, dir);
@@ -91,7 +96,7 @@ public class FileUtils {
      * created on SD card <i>("/Android/data/[app_package_name]/cache/uil-images")</i> if card is mounted and app has
      * appropriate permission. Else - Android defines cache directory on device's file system.
      *
-     * @param context Application context
+     * @param context  Application context
      * @param cacheDir Cache directory path (e.g.: "AppCacheDir", "AppDir/cache/images")
      * @return Cache {@link File directory}
      */
@@ -126,4 +131,57 @@ public class FileUtils {
         return perm == PackageManager.PERMISSION_GRANTED;
     }
 
+
+    public static Uri showImage(Context context, String url) {
+        Uri loadUri = null;
+        if (url.startsWith("http")) {
+            //网络图片
+            loadUri = Uri.parse(url);
+        } else {
+            //本地文件
+            if (url.startsWith("file://")) {
+                //文件的方式
+                if (Build.VERSION.SDK_INT > Build.VERSION_CODES.N) {
+                    //Android 7.0系统开始 使用本地真实的Uri路径不安全,使用FileProvider封装共享Uri
+                    url = Uri.parse(url).getPath();
+                }
+            }
+            File file = new File(url);
+            if (file != null && file.exists()) {
+                //本地文件
+                loadUri = Uri.fromFile(file);
+            } else {
+                //可能是资源路径的地址
+                loadUri = Uri.parse(url);
+            }
+        }
+        return loadUri;
+    }
+
+    public static Uri getImageContentUri(Context context, String path) {
+        Cursor cursor = context.getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                new String[]{MediaStore.Images.Media._ID}, MediaStore.Images.Media.DATA + "=? ",
+                new String[]{path}, null);
+        try {
+            if (cursor != null && cursor.moveToFirst()) {
+                int id = cursor.getInt(cursor.getColumnIndex(MediaStore.MediaColumns._ID));
+                Uri baseUri = Uri.parse("content://media/external/images/media");
+                return Uri.withAppendedPath(baseUri, "" + id);
+            } else {
+                // 如果图片不在手机的共享图片数据库，就先把它插入。
+                if (new File(path).exists()) {
+                    ContentValues values = new ContentValues();
+                    values.put(MediaStore.Images.Media.DATA, path);
+                    return context.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+                } else {
+                    return null;
+                }
+            }
+        } catch (Exception e) {
+
+        } finally {
+            cursor.close();
+        }
+        return null;
+    }
 }

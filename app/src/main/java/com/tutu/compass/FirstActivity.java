@@ -59,16 +59,19 @@ public class FirstActivity extends AppCompatActivity implements ViewPager.OnPage
 
 //                startActivity(new Intent(FirstActivity.this, MainActivity.class));
 
-                rxPermissions.request(Manifest.permission.ACCESS_FINE_LOCATION
-                ,Manifest.permission.ACCESS_COARSE_LOCATION)
+                rxPermissions.request(Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.READ_PHONE_STATE,
+                        Manifest.permission.ACCESS_COARSE_LOCATION)
                         .subscribe(new Consumer<Boolean>() {
                             @Override
                             public void accept(Boolean aBoolean) throws Exception {
-                                if (aBoolean){
+                                if (aBoolean) {
                                     startActivity(new Intent(FirstActivity.this, WebViewActivity.class));
                                     finish();
-                                }else {
-                                    Toast.makeText(FirstActivity.this.getApplicationContext(), "没有获取到定位权限", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    Toast.makeText(FirstActivity.this.getApplicationContext(), "没有获取到权限无法使用", Toast.LENGTH_SHORT).show();
                                 }
                             }
                         });

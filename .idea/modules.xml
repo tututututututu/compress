@@ -10,6 +10,7 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/multi-image-selector/compress-imgselector.iml" filepath="$PROJECT_DIR$/.idea/modules/multi-image-selector/compress-imgselector.iml" group="compress/imgselector" />
       <module fileurl="file://$PROJECT_DIR$/imageshowpickerview/imageshowpickerview.iml" filepath="$PROJECT_DIR$/imageshowpickerview/imageshowpickerview.iml" />
       <module fileurl="file://$PROJECT_DIR$/multi-image-selector/imgselector.iml" filepath="$PROJECT_DIR$/multi-image-selector/imgselector.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/library/library.iml" filepath="$PROJECT_DIR$/.idea/modules/library/library.iml" group="compress/library" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/tt-compress.iml" filepath="$PROJECT_DIR$/.idea/modules/tt-compress.iml" group="compress" />
     </modules>
   </component>

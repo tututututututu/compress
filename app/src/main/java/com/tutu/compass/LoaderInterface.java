@@ -6,6 +6,7 @@ import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.yzs.imageshowpickerview.ImageLoader;
+import me.nereo.multi_image_selector.utils.FileUtils;
 
 /**
  */
@@ -14,7 +15,11 @@ public class LoaderInterface extends ImageLoader {
 
     @Override
     public void displayImage(Context context, String path, ImageView imageView) {
-        Glide.with(context).load(path).into(imageView);
+        if (path.startsWith("/")){
+            Glide.with(context).load(FileUtils.getImageContentUri(context,path)).into(imageView);
+        }else {
+            Glide.with(context).load(path).into(imageView);
+        }
 
     }
 

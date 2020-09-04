@@ -9,7 +9,12 @@
         <external-path
             name="external_storage_root"
             path="." />
-        <external-path name="images" path="."/>
+        <external-path
+            name="images"
+            path="." />
+        <external-path
+            name="my_images"
+            path="Pictures" />
     </paths>
 
 </resources>
